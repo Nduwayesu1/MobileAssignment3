@@ -1,0 +1,29 @@
+name: calculator
+description: "A new Flutter project."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'  # Update to match the latest stable Flutter SDK version
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  math_expressions: ^2.2.0
+  connectivity: ^3.0.6
+  http: ^1.2.1
+  battery: ^2.0.3
+  shared_preferences: ^2.0.7 
+  provider: ^6.1.2
+  flutter_localizations: # Add flutter_localizations here
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0  # Update flutter_lints to the latest major version
+
+flutter:
+  uses-material-design: true

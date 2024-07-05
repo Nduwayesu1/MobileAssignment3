@@ -1,0 +1,235 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:connectivity/connectivity.dart';
+import 'package:calculator/theme_provider.dart'; // Adjust path as per your project
+import 'package:calculator/language_provider.dart'; // Adjust path as per your project
+import 'package:calculator/signin.dart'; // Adjust path as per your project
+import 'package:calculator/signup.dart'; // Adjust path as per your project
+import 'package:calculator/calculator.dart'; // Adjust path as per your project
+import 'package:calculator/battery.dart'; // Adjust path as per your project
+import 'package:calculator/google_signin.dart'; // Adjust path as per your project
+
+
+
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Your App Title',
+      theme: ThemeData(
+        primarySwatch: Colors.blue, // Adjust theme based on your preferences
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: MyHomePageWrapper(),
+    );
+  }
+}
+
+class MyHomePageWrapper extends StatefulWidget {
+  @override
+  _MyHomePageWrapperState createState() => _MyHomePageWrapperState();
+}
+
+class _MyHomePageWrapperState extends State<MyHomePageWrapper> {
+  ConnectivityResult _connectivityResult = ConnectivityResult.none;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeConnectivity();
+  }
+
+  Future<void> initializeConnectivity() async {
+    ConnectivityResult result = await Connectivity().checkConnectivity();
+    setState(() {
+      _connectivityResult = result;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MyHomePage(connectivityResult: _connectivityResult);
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  final ConnectivityResult connectivityResult;
+
+  const MyHomePage({
+    Key? key,
+    required this.connectivityResult,
+  }) : super(key: key);
+
+  @override
+  MyHomePageState createState() => MyHomePageState();
+}
+
+class MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+  ConnectivityResult _connectivityResult = ConnectivityResult.none;
+  late TabController _tabController;
+  int _currentIndex = 0; // Track the current tab index
+
+  @override
+  void initState() {
+    super.initState();
+    _connectivityResult = widget.connectivityResult;
+    _tabController = TabController(length: 5, vsync: this, initialIndex: _currentIndex);
+    _tabController.addListener(_handleTabSelection);
+  }
+
+  void _handleTabSelection() {
+    setState(() {
+      _currentIndex = _tabController.index;
+    });
+  }
+
+  void updateConnectivity(ConnectivityResult result, String message) {
+    setState(() {
+      _connectivityResult = result;
+    });
+    // Show SnackBar with connectivity message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_connectivityResult == ConnectivityResult.none) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.warning, size: 60, color: Colors.red),
+            SizedBox(height: 16),
+            Text(
+              'No internet connection',
+              style: TextStyle(fontSize: 20),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return TabBarView(
+        physics: NeverScrollableScrollPhysics(), // Disable swiping between tabs
+        controller: _tabController, // Use the TabController to manage state
+        children: [
+          SignIn(), // Use SignInScreen widget
+          SignUp(), // Use SignUpScreen widget
+          Calculator(), // Use CalculatorScreen widget
+          BatteryLevelDemo(), // Include BatteryLevelDemo widget
+        
+        ],
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    Color backgroundColor = themeProvider.getBackgroundColor();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My App'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.deepPurple,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.login),
+              title: Text('Sign In'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                _tabController.animateTo(0); // Navigate to SignIn tab
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person_add),
+              title: Text('Sign Up'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                _tabController.animateTo(1); // Navigate to SignUp tab
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.calculate),
+              title: Text('Calculator'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                _tabController.animateTo(2); // Navigate to Calculator tab
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.battery_full),
+              title: Text('Battery Level'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                _tabController.animateTo(3); // Navigate to Battery Level tab
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.login), // Use appropriate icon for Google sign-in
+              title: Text('Sign in with Google'),
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                _tabController.animateTo(4); // Navigate to Google Sign-In tab
+              },
+            ),
+          ],
+        ),
+      ),
+      body: Container( // Wrap with Container to set background color
+        color: backgroundColor,
+        child: _buildBody(),
+      ),
+      bottomNavigationBar: Container(
+        color: Color.fromRGBO(93, 13, 231, 1),
+        child: TabBar(
+          tabs: [
+            Tab(icon: Icon(Icons.login), text: 'Sign In'),
+            Tab(icon: Icon(Icons.person_add), text: 'Sign Up'),
+            Tab(icon: Icon(Icons.calculate), text: 'Calculator'),
+            Tab(icon: Icon(Icons.battery_full), text: 'Battery'),
+            Tab(icon: Icon(Icons.login), text: 'Google Sign-In'),
+          ],
+          onTap: (index) {
+            _tabController.animateTo(index); // Handle tab taps
+          },
+          controller: _tabController, // Use the same TabController for synchronization
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          String message = _connectivityResult == ConnectivityResult.none
+              ? 'No internet connection'
+              : 'Connected';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message)),
+          );
+        },
+        child: Icon(Icons.network_check),
+      ),
+    );
+  }
+}
